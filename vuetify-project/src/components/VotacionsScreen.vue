@@ -1,21 +1,14 @@
 <template>
-    <v-btn class="button" @click="vote('Opcion 1')">Opcion 1</v-btn>
-    <v-btn class="button" @click="vote('Opcion 2')">Opcion 2</v-btn>
-    <v-btn class="button" @click="vote('Opcion 3')">Opcion 3</v-btn>
-    <v-btn class="button" @click="vote('Opcion 4')">Opcion 4</v-btn>
+    <v-btn class="button" @click="votar(index)" v-for="(opcion,index) in opciones" :key="opcion">{{ opcion }}</v-btn>
+    <br>    <br>
+    <div v-for="(opcion,index) in opciones" :key="opcion">{{ opcion }}: {{ votos[index] || 0 }}</div>
 </template>
 
 <script setup>
 
 import { ref } from 'vue';
-import { io } from 'socket.io-client';
-
-const socket = io('http://localhost:3278'); // Asegúrate de usar la misma URL del servidor
-
-
-const vote = (option) => {
-  socket.emit('votacio', option);
-};
+import { useAppStore } from '@/store/app.js'
+const store = useAppStore();
 </script>
 
 <script>
@@ -23,21 +16,35 @@ const vote = (option) => {
 export default {
     data() {
         return {
-
+            votos:ref([]),
+            opciones:['Opcion 1','Opcion 2','Opcion 3','Opcion 4']
         }
     },
     methods: {
+        votar(opcion) {
+            const store = useAppStore();
+            store.emitir(opcion);
 
+            const votos = ref(store.getVotos);
+            this.votos = votos;
+
+        },
     },
     created() {
+        const store = useAppStore(); 
+
         console.log("CREADO");
+
+        store.conectar();
+
     },
     mounted() {
+        const store = useAppStore(); 
+
         console.log("MONTADO");
-        socket.on('actualizacioVotacions', (votos) => {
-            console.log('Votaciones actualizadas:', votos);
-            // Actualiza la interfaz de usuario con las votaciones actualizadas si es necesario
-        });
+
+        this.votos = store.getVotos();
+
     }
 };
 </script>

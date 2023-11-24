@@ -60,6 +60,8 @@ export default {
                 console.log(this.passwd);
                 console.log(this.correcto);
 
+                console.log(store.getLoginInfo());
+
                 this.$router.push('/votacions');
             } else {
                 this.correcto = false;
