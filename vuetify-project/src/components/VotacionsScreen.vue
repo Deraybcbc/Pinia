@@ -2,24 +2,30 @@
     <v-btn class="button" @click="votar(index)" v-for="(opcion, index) in opciones" :key="opcion">{{ opcion }}</v-btn>
     <br> <br>
     <div v-for="(opcion, index) in opciones" :key="opcion">{{ opcion }}: {{ store.infoVotos.votos[index] || 0 }}</div>
+    <div style="width: 1400px; height: 900px;">
+        <Grafics :opciones="opciones" :votos="store.infoVotos.votos" />
+    </div>
 </template>
 
 <script setup>
 
 //import { ref } from 'vue';
 import { useAppStore } from '@/store/app.js'
+import Grafics from './GraficoBarra.vue';
+
 const store = useAppStore();
 </script>
 
 <script>
 
 export default {
+
     data() {
         return {
             opciones: ['Opcion 1', 'Opcion 2', 'Opcion 3', 'Opcion 4']
         }
     },
-    
+
     methods: {
         votar(opcion) {
             const store = useAppStore();
@@ -34,7 +40,7 @@ export default {
     mounted() {
         console.log("MONTADO");
     }
-};
+}
 </script>
 
 <style scoped>

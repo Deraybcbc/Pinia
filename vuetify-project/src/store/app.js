@@ -37,12 +37,12 @@
 
                 socket.on('actualizacioVotacions', (votosActualizados) => {
                     //console.log('Votaciones actualizadas:', votosActualizados);
-                    console.log(this.infoVotos.votos);
+                    /*console.log(this.infoVotos.votos);*/
                     this.setVotos(votosActualizados);
                     const votos = this.getVotos();
-                    console.log(this.infoVotos.votos);
+                    //console.log(this.infoVotos.votos);
 
-                    console.log("HOLA", votos);
+                   // console.log("HOLA", votos);
                 });
             },
             emitir(opcion) {
