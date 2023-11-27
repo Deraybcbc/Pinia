@@ -12,16 +12,11 @@ import { onUnmounted, onMounted, watch } from 'vue';
 import { useAppStore } from '@/store/app.js'
 import Chart from 'chart.js/auto';
 const store = useAppStore();
-let myChart = null;
 
 </script>
 
 <script>
 export default {
-    props: {
-        opciones: Array,
-        votos: Array,
-    },
     data() {
         return {
             myChart: null,
@@ -38,7 +33,10 @@ export default {
             this.myChart = null;
         }
     },
-
+    mounted(){
+        console.log("MONTADO GRAFICO");
+        this.crearGrafico();
+    },
 
 
     methods: {
@@ -80,12 +78,7 @@ export default {
                 },
             });
 
-            watch('votos', (newValue) => {
-                if (this.myChart) {
-                    this.myChart.data.datasets[0].data = newValue;
-                    this.myChart.update();
-                }
-            })
+
         },
     },
 
