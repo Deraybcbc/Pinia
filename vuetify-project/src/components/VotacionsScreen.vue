@@ -12,13 +12,13 @@
 <script setup>
 import { useAppStore } from '@/store/app.js';
 import Chart from 'chart.js/auto';
+import { io } from 'socket.io-client';
+
 
 const store = useAppStore();
 </script>
 
 <script>
-import { useAppStore } from '@/store/app.js';
-import Chart from 'chart.js/auto';
 
 const stores = useAppStore();
 
@@ -35,15 +35,46 @@ export default {
 
     methods: {
 
-        votar(opcion) {
+        async votar(opcion) {
             stores.conectar();
-            stores.emitir(opcion);
-            //this.actualizar();
+            await stores.emitir(opcion);
         },
 
-        crearGraficos(){
+        // UPDATE VOTOS
+        actualizacioVotacions() {
+            const socket = io('http://localhost:3278');
+            socket.on('actualizacioVotacions', (votosActualizados) => {
+                this.actualizarGrafico(votosActualizados);
+            });
+
+            socket.on('votoActualizado', (voto) => {
+                const votos = { ...this.myChart.data.datasets[0].data };
+                votos[voto.opcion]++;
+                this.actualizarGrafico(votos);
+            });
+        },
+
+        // UPDATE GRAFICO
+        actualizarGrafico(datosActualizados) {
+            if (this.myChart) {
+                this.myChart.data.datasets[0].data = datosActualizados;
+                //this.chartInstance.update();
+            }
+        },
+
+        crearGraficos() {
             stores.conectar();
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const canvas = document.getElementById('myChart');
+            // Check if the canvas element exists
+            if (!canvas) {
+                console.error("Canvas element not found.");
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            // Destroy existing chart if it exists
+            if (this.myChart) {
+                this.myChart.destroy();
+            }
 
             this.myChart = new Chart(ctx, {
                 type: 'bar',
@@ -78,15 +109,14 @@ export default {
                 },
             });
 
-        }
+        },
 
     },
     created() {
         //store = useAppStore();
         console.log("CREADO");
         stores.conectar;
-
-
+        this.actualizacioVotacions();
     },
 
     mounted() {
@@ -94,9 +124,17 @@ export default {
 
         console.log("VOTACIONES", stores.getVotos());
 
+    },
+
+    updated() {
         this.crearGraficos();
 
-    }
+    },
+    destroyed() {
+        console.log("DESTRUIDO");
+        const socket = io('http://localhost:3278');
+        socket.off('actualizacioVotacions');
+    },
 };
 </script>
 
