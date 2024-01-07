@@ -5,20 +5,17 @@
 
     <div>
         <canvas id="myChart"></canvas>
-
     </div>
 </template>
 
 <script setup>
 import { useAppStore } from '@/store/app.js';
-import Chart from 'chart.js/auto';
 import { io } from 'socket.io-client';
-
-
 const store = useAppStore();
 </script>
 
 <script>
+import Chart from 'chart.js/auto';
 
 const stores = useAppStore();
 
@@ -39,6 +36,7 @@ export default {
             stores.conectar();
             await stores.emitir(opcion);
         },
+
 
         // UPDATE VOTOS
         actualizacioVotacions() {
@@ -64,58 +62,73 @@ export default {
 
         crearGraficos() {
             stores.conectar();
+
             const canvas = document.getElementById('myChart');
+            let ctx;
+
             // Check if the canvas element exists
             if (!canvas) {
                 console.error("Canvas element not found.");
                 return;
+            } else {
+                ctx = canvas.getContext('2d');
             }
-            const ctx = canvas.getContext('2d');
+
+            // Espera a que stores.infoVotos.votos tenga datos antes de crear el gráfico
+            if (!stores.infoVotos.votos) {
+                console.error("No hay datos de votos disponibles.");
+                return;
+            }
+
+
+
             // Destroy existing chart if it exists
             if (this.myChart) {
                 this.myChart.destroy();
             }
 
-            this.myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: this.opciones,
-                    datasets: [
-                        {
-                            label: 'Votos',
-                            data: stores.infoVotos.votos || [],
-                            backgroundColor: [
-                                'rgba(255, 99, 132, 0.2)',
-                                'rgba(54, 162, 235, 0.2)',
-                                'rgba(255, 206, 86, 0.2)',
-                                'rgba(75, 192, 192, 0.2)',
-                            ],
-                            borderColor: [
-                                'rgba(255, 99, 132, 1)',
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(255, 206, 86, 1)',
-                                'rgba(75, 192, 192, 1)',
-                            ],
-                            borderWidth: 1,
-                        },
-                    ],
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
+            this.$nextTick(() => {
+                this.myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: this.opciones,
+                        datasets: [
+                            {
+                                label: 'Votos',
+                                data: stores.infoVotos.votos || [],
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)',
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                ],
+                                borderWidth: 1,
+                            },
+                        ],
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                            },
                         },
                     },
-                },
+                });
             });
 
         },
 
     },
     created() {
-        //store = useAppStore();
+        // Línea corregida: invoca la función conectar
+        stores.conectar();
         console.log("CREADO");
-        stores.conectar;
         this.actualizacioVotacions();
     },
 

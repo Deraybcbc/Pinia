@@ -1,7 +1,7 @@
     import { defineStore } from 'pinia'
     import { io } from 'socket.io-client';
 
-    const socket = io('http://localhost:3278/');
+    const socket = io('http://localhost:3278');
     export const useAppStore = defineStore('app', {
         state: () => ({
             loginInfo: {
