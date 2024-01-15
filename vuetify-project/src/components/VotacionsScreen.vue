@@ -1,10 +1,10 @@
 <template>
-    <v-btn class="button" @click="votar(index)" v-for="(opcion, index) in opciones" :key="opcion">{{ opcion }}</v-btn>
+    <v-btn class="button" @click="votar(index)" v-for="(opcion, index) in opciones" :key="index">{{ opcion }}</v-btn>
 
-    <div v-for="(opcions, index) in opciones" :key="opcions">{{ opcions }}: {{ store.infoVotos.votos[index] || 0 }}</div>
+    <div v-for="(opcions, index) in opciones" :key="index">{{ opcions }}: {{ store.infoVotos.votos[index] || 0 }}</div>
 
     <div>
-        <canvas id="myChart"></canvas>
+        <canvas id="grafico"></canvas>
     </div>
 </template>
 
@@ -19,6 +19,8 @@ import Chart from 'chart.js/auto';
 
 const stores = useAppStore();
 
+stores.conectar();
+
 export default {
 
     data() {
@@ -27,13 +29,13 @@ export default {
             opciones: ['Opcion 1', 'Opcion 2', 'Opcion 3', 'Opcion 4'],
             votos: [],
             myChart: null,
+            canvas: null,
         }
     },
 
     methods: {
 
         async votar(opcion) {
-            stores.conectar();
             await stores.emitir(opcion);
         },
 
@@ -54,73 +56,61 @@ export default {
 
         // UPDATE GRAFICO
         actualizarGrafico(datosActualizados) {
+            console.log("Actualizar gráfico");
             if (this.myChart) {
-                this.myChart.data.datasets[0].data = datosActualizados;
-                //this.chartInstance.update();
+                if (this.myChart.data.datasets[0].data.join(",") !== datosActualizados.join(",")) {
+                    this.myChart.data.datasets[0].data = datosActualizados;
+                    //this.myChart.update();
+                }
             }
         },
 
         crearGraficos() {
-            stores.conectar();
-
-            const canvas = document.getElementById('myChart');
-            let ctx;
-
+            const ctx = document.getElementById('grafico');
             // Check if the canvas element exists
-            if (!canvas) {
-                console.error("Canvas element not found.");
-                return;
-            } else {
-                ctx = canvas.getContext('2d');
-            }
-
-            // Espera a que stores.infoVotos.votos tenga datos antes de crear el gráfico
-            if (!stores.infoVotos.votos) {
-                console.error("No hay datos de votos disponibles.");
-                return;
-            }
-
-
-
-            // Destroy existing chart if it exists
-            if (this.myChart) {
-                this.myChart.destroy();
-            }
-
-            this.$nextTick(() => {
-                this.myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: this.opciones,
-                        datasets: [
-                            {
-                                label: 'Votos',
-                                data: stores.infoVotos.votos || [],
-                                backgroundColor: [
-                                    'rgba(255, 99, 132, 0.2)',
-                                    'rgba(54, 162, 235, 0.2)',
-                                    'rgba(255, 206, 86, 0.2)',
-                                    'rgba(75, 192, 192, 0.2)',
-                                ],
-                                borderColor: [
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                ],
-                                borderWidth: 1,
-                            },
-                        ],
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
+            if (ctx) {
+                const chartCtx = ctx.getContext('2d');
+                if (chartCtx) {
+                    // Destruir el gráfico existente si ya hay uno
+                    if (this.myChart) {
+                        this.myChart.destroy();
+                    }
+                    this.myChart = new Chart(chartCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: this.opciones,
+                            datasets: [
+                                {
+                                    label: 'Votos',
+                                    data: stores.infoVotos.votos || [],
+                                    backgroundColor: [
+                                        'rgba(255, 99, 132, 0.2)',
+                                        'rgba(54, 162, 235, 0.2)',
+                                        'rgba(255, 206, 86, 0.2)',
+                                        'rgba(75, 192, 192, 0.2)',
+                                    ],
+                                    borderColor: [
+                                        'rgba(255, 99, 132, 1)',
+                                        'rgba(54, 162, 235, 1)',
+                                        'rgba(255, 206, 86, 1)',
+                                        'rgba(75, 192, 192, 1)',
+                                    ],
+                                    borderWidth: 1,
+                                },
+                            ],
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                },
                             },
                         },
-                    },
-                });
-            });
+                    });
+                }
+            }
+
+
 
         },
 
@@ -130,6 +120,7 @@ export default {
         stores.conectar();
         console.log("CREADO");
         this.actualizacioVotacions();
+
     },
 
     mounted() {
@@ -139,7 +130,10 @@ export default {
 
     },
 
+
+
     updated() {
+        console.log("ACTUALIZADO");
         this.crearGraficos();
 
     },
